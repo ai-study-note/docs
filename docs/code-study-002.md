@@ -1,7 +1,7 @@
 # Code Agent Implementation Analysis & External Project Implementation Prompt
 
 > This document provides a complete analysis of the features, workflow, and implementation of
-> `packages/<sub-package>/src/main/code-agent/`, and outputs an **English implementation prompt**
+> `packages/<package-name>/src/main/code-agent/`, and outputs an **English implementation prompt**
 > that can be copied and used by other projects to quickly implement the same Code Agent.
 
 ---
@@ -27,7 +27,7 @@
 ### 1.1 Directory Structure
 
 ```
-packages/<sub-package>/src/main/code-agent/
+packages/<package-name>/src/main/code-agent/
 ├── index.ts              # Unified entry point, exports all public classes and types
 ├── agent-loop.ts         # Agent core loop (most important)
 ├── tool-registry.ts      # Tool registry
@@ -46,16 +46,16 @@ packages/<sub-package>/src/main/code-agent/
 
 | Module | File | Responsibility |
 |--------|------|----------------|
-| Entry | index.ts | Unified export of all public APIs |
-| Core Loop | agent-loop.ts | Multi-turn Tool Calling loop, System Prompt construction, streaming callbacks |
-| Type System | types.ts | AgentConfig, AgentCallbacks, AgentResult, WorkflowStep, FileDiff, ToolDefinition, etc. |
-| Tool Registry | tool-registry.ts | Tool registration, MCP tool registration, OpenAI format export, tool execution |
-| Tool Implementation | tools/index.ts | Business logic for 7 built-in tools |
-| Diff Tracking | diff-tracker.ts | Git-based file change tracking, diff generation, revert/confirm |
-| Sandbox Validation | sandbox.ts | Auto-detect project type, run tsc/lint/test validation |
-| MCP Manager | mcp-manager.ts | Load MCP servers via stdio, discover and register tools |
-| Skill Manager | skill-manager.ts | Skill registration, System Prompt extension merging |
-| Built-in Skills | skills/index.ts | typescript-strict, react-patterns, testing — three built-in Skills |
+| Entry | [index.ts](./packages/<package-name>/src/main/code-agent/index.ts) | Unified export of all public APIs |
+| Core Loop | [agent-loop.ts](./packages/<package-name>/src/main/code-agent/agent-loop.ts) | Multi-turn Tool Calling loop, System Prompt construction, streaming callbacks |
+| Type System | [types.ts](./packages/<package-name>/src/main/code-agent/types.ts) | AgentConfig, AgentCallbacks, AgentResult, WorkflowStep, FileDiff, ToolDefinition, etc. |
+| Tool Registry | [tool-registry.ts](./packages/<package-name>/src/main/code-agent/tool-registry.ts) | Tool registration, MCP tool registration, OpenAI format export, tool execution |
+| Tool Implementation | [tools/index.ts](./packages/<package-name>/src/main/code-agent/tools/index.ts) | Business logic for 7 built-in tools |
+| Diff Tracking | [diff-tracker.ts](./packages/<package-name>/src/main/code-agent/diff-tracker.ts) | Git-based file change tracking, diff generation, revert/confirm |
+| Sandbox Validation | [sandbox.ts](./packages/<package-name>/src/main/code-agent/sandbox.ts) | Auto-detect project type, run tsc/lint/test validation |
+| MCP Manager | [mcp-manager.ts](./packages/<package-name>/src/main/code-agent/mcp-manager.ts) | Load MCP servers via stdio, discover and register tools |
+| Skill Manager | [skill-manager.ts](./packages/<package-name>/src/main/code-agent/skill-manager.ts) | Skill registration, System Prompt extension merging |
+| Built-in Skills | [skills/index.ts](./packages/<package-name>/src/main/code-agent/skills/index.ts) | typescript-strict, react-patterns, testing — three built-in Skills |
 
 ---
 
@@ -172,7 +172,7 @@ User Input Prompt
     │
     ▼
 [8. User Approval]
-    │  Accept All → agent.applyAll() → git add all changed files
+    │  Accept All → agent.applyAll() → save all changed files
     │  Reject All → agent.revertAll() → git checkout restore files / delete new files
 ```
 
@@ -197,7 +197,7 @@ The Agent Loop supports cancellation via `AbortSignal`:
 
 ### 4.1 Construction Flow
 
-The System Prompt is assembled in the `buildSystemPrompt()` method of agent-loop.ts:
+The System Prompt is assembled in the `buildSystemPrompt()` method of [agent-loop.ts](./packages/<package-name>/src/main/code-agent/agent-loop.ts#L330-L383):
 
 ```typescript
 private buildSystemPrompt(): string {
@@ -330,7 +330,7 @@ interface ToolDefinition {
 
 ### 5.3 Tool Registry
 
-ToolRegistry is a Map-based structure:
+[ToolRegistry](./packages/<package-name>/src/main/code-agent/tool-registry.ts) is a Map-based structure:
 
 - `register(definition, handler)` — Register a single tool
 - `registerMCPTools(mcpTools)` — Register MCP tools (auto-prefixed with `mcp__`)
@@ -354,7 +354,7 @@ This ensures precise and safe editing operations, preventing accidental modifica
 
 ### 6.1 Design Goal
 
-MCPManager allows the Agent to dynamically load external MCP servers to extend tool capabilities.
+[MCPManager](./packages/<package-name>/src/main/code-agent/mcp-manager.ts) allows the Agent to dynamically load external MCP servers to extend tool capabilities.
 
 ### 6.2 Workflow
 
@@ -393,7 +393,7 @@ MCP tools are automatically prefixed with `mcp__` when registered to avoid confl
 
 ### 7.1 Design Goal
 
-SkillManager guides the Agent's coding behavior through System Prompt extensions.
+[SkillManager](./packages/<package-name>/src/main/code-agent/skill-manager.ts) guides the Agent's coding behavior through System Prompt extensions.
 
 ### 7.2 Comparison with MCP
 
@@ -445,7 +445,7 @@ interface SkillDefinition {
 
 ### 8.1 Design Goal
 
-GitDiffTracker is based on the `simple-git` library and can work even without an existing Git repository.
+[GitDiffTracker](./packages/<package-name>/src/main/code-agent/diff-tracker.ts) is based on the `simple-git` library and can work even without an existing Git repository.
 
 ### 8.2 Core Methods
 
@@ -456,7 +456,7 @@ GitDiffTracker is based on the `simple-git` library and can work even without an
 | `getChangedFiles()` | Get list of all changed file paths |
 | `collectDiffs()` | Collect unified diffs for all changed files |
 | `revertAll()` | Revert all changes (delete new files, git checkout existing files) |
-| `finalize()` | Confirm changes (git add all changed files) |
+| `finalize()` | Confirm changes (save all changed files) |
 
 ### 8.3 Diff Collection Logic
 
@@ -478,7 +478,7 @@ GitDiffTracker is based on the `simple-git` library and can work even without an
 
 ### 9.1 Design Goal
 
-SandboxExecutor automatically runs validation commands after code changes to ensure correctness.
+[SandboxExecutor](./packages/<package-name>/src/main/code-agent/sandbox.ts) automatically runs validation commands after code changes to ensure correctness.
 
 ### 9.2 Validation Command Auto-Detection
 
@@ -822,7 +822,7 @@ Create `diff-tracker.ts`, implementing the `GitDiffTracker` class:
 - `revertAll()` — Revert all changes:
   - New files → delete via `fs.unlink`
   - Existing files → restore via `git checkout -- file`
-- `finalize()` — Confirm changes: `git add` all changed files
+- `finalize()` — Confirm changes: `save` all changed files
 
 ### Phase 4: Sandbox Executor
 
@@ -1277,5 +1277,6 @@ abortController.abort();
 4. `run_command` output is truncated to 5000 characters to avoid context overflow
 5. If MCP support is needed, install `@modelcontextprotocol/sdk`
 6. If the project has no Git repository, DiffTracker will gracefully degrade
+
 
  
