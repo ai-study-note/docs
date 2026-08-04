@@ -1277,6 +1277,4 @@ abortController.abort();
 4. `run_command` output is truncated to 5000 characters to avoid context overflow
 5. If MCP support is needed, install `@modelcontextprotocol/sdk`
 6. If the project has no Git repository, DiffTracker will gracefully degrade
-
-
  
